@@ -1,0 +1,42 @@
+<?php
+
+declare(strict_types=1);
+
+namespace KCode\Modulith\ArchiveExtractors;
+
+use Illuminate\Support\Arr;
+use InvalidArgumentException;
+
+final class Manager
+{
+    /** @var Extractor[] */
+    protected $extractorsMap = [];
+
+    public function __construct()
+    {
+        $this->addExtractor('zip', new Zip())
+            ->addExtractor('tar', new Tar())
+            ->addExtractor('tar.gz', new TarGz());
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function getExtractor(string $archiveExtension): Extractor
+    {
+        $extractor = Arr::get($this->extractorsMap, $archiveExtension);
+
+        if (! $extractor) {
+            throw new InvalidArgumentException("There are no extractors for extension '{$archiveExtension}'!");
+        }
+
+        return $extractor;
+    }
+
+    public function addExtractor(string $archiveExtension, Extractor $instance): self
+    {
+        $this->extractorsMap[$archiveExtension] = $instance;
+
+        return $this;
+    }
+}
